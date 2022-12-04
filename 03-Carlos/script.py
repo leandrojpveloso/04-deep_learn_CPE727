@@ -26,7 +26,7 @@ def build_model(model_layers, input_dim=100, output_layer=(100, 'linear'), optim
     for dim, activation in model_layers:
         layer = layers.Dense(dim, activation=activation)(layer)
         if batch_norm:
-            layer = layers.BatchNormalization()
+            layer = layers.BatchNormalization()(layer)
     layer = layers.Dense(output_layer[0], activation=output_layer[1])(layer)
     model = keras.Model(input_layer, layer)
     model.compile(optimizer=optimizer, loss=loss)
