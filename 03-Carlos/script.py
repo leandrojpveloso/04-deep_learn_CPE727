@@ -1,7 +1,6 @@
 import numpy as np
 import keras
 from keras import layers
-from keras.callbacks import TensorBoard
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split, KFold, GridSearchCV
@@ -20,11 +19,15 @@ X_true = ring_data[leblon_data['target'] == 1.0]
 
 X_train, X_test = train_test_split(X_false, test_size=0.3, random_state=random_seed)
 
-def build_model(model_layers, input_dim=100, output_layer=(100, 'linear'), optimizer='adam', loss='mean_squared_error', batch_norm=False):
+def build_model(inner_layer, outer_layer, activation, input_dim=100, output_layer=(100, 'linear'), optimizer='adam', loss='mean_squared_error', batch_norm=False):
     input_layer = keras.Input(shape=(input_dim,))
     layer = input_layer
-    for dim, activation in model_layers:
-        layer = layers.Dense(dim, activation=activation)(layer)
+    model_layers = [outer_layer, inner_layer, outer_layer]
+    for n_neurons in model_layers:
+        if n_neurons == 0:
+            continue
+        layer = layers.Dense(n_neurons)(layer)
+        layer = activation(layer)
         if batch_norm:
             layer = layers.BatchNormalization()(layer)
     layer = layers.Dense(output_layer[0], activation=output_layer[1])(layer)
@@ -32,25 +35,20 @@ def build_model(model_layers, input_dim=100, output_layer=(100, 'linear'), optim
     model.compile(optimizer=optimizer, loss=loss)
     return model
 
-outer_loop = 2
-inner_loop = 2
+outer_loop = 10
+inner_loop = 10
 batch_size = 256
-epochs = 10
+epochs = 50
 # parameters
-model_1 = [
-    (50, 'gelu'),
-    (5, 'gelu'),
-    (50, 'gelu'),
-]
-model_2 = [
-    (50, 'relu'),
-    (10, 'relu'),
-    (50, 'relu'),
-]
-# full grid
 param_grid = {
-    'model__model_layers': [model_1, model_2],
+    'model__outer_layer': [50, 30, 0],
+    'model__inner_layer': [20, 10, 5, 2],
     'model__batch_norm': [True, False],
+    'model__activation': [
+        layers.Activation('relu'),
+        layers.Activation(keras.layers.LeakyReLU()),
+        layers.Activation('sigmoid'),
+    ],
 }
 
 results = []
