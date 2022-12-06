@@ -41,13 +41,12 @@ batch_size = 256
 epochs = 50
 # parameters
 param_grid = {
-    'model__outer_layer': [50, 30, 0],
-    'model__inner_layer': [20, 10, 5, 2],
+    'model__outer_layer': [50, 0],
+    'model__inner_layer': [20, 10, 5],
     'model__batch_norm': [True, False],
     'model__activation': [
-        layers.Activation('relu'),
+        layers.Activation('gelu'),
         layers.Activation(keras.layers.LeakyReLU()),
-        layers.Activation('sigmoid'),
     ],
 }
 
