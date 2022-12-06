@@ -53,16 +53,16 @@ param_grid = {
 
 results = []
 k = 0
-cv_outer = KFold(n_splits=outer_loop, shuffle=True, random_state=1)
+cv_outer = KFold(n_splits=outer_loop, shuffle=True, random_state=random_seed)
 
 for train_ix, test_ix in cv_outer.split(X_train):
     X_kfold_train, X_kfold_test = X_train[train_ix, :], X_train[test_ix, :]
     # inner cross-validation
     cv_inner = KFold(n_splits=inner_loop, shuffle=True, random_state=random_seed)
     # model
-    model = KerasRegressor(build_model, epochs=epochs, batch_size=batch_size, verbose=1)
+    model = KerasRegressor(build_model, epochs=epochs, batch_size=batch_size, verbose=0)
     # search
-    search = GridSearchCV(model, param_grid, scoring='neg_mean_squared_error', n_jobs=1, cv=cv_inner, refit=True)
+    search = GridSearchCV(model, param_grid, scoring='neg_mean_squared_error', n_jobs=-1, cv=cv_inner, refit=True)
     # execute search
     result = search.fit(X_kfold_train, X_kfold_train)
     # evaluate the model
